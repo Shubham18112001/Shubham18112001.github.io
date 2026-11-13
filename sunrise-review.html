@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Write Your Review</title>
+<!--
+  HOW TO REUSE THIS FILE FOR A NEW SHOP (3 steps, nothing else to touch):
+  1. Copy this file in File Manager and rename it for the shop (example: helper-sharma-store.html).
+  2. Open the copy and change ONLY the "EDIT HERE" block at the top of the <script> below:
+     - SHOP_NAME  -> the shop's real name
+     - REVIEW_LINK -> the shop's Google "ask for review" link
+  3. If the shop needs different questions or answers, change the Q1_OPTIONS / Q2_OPTIONS
+     lines in that same block (label = button text, good/soft/bad = draft lines).
+  Upload the copy to the site's htdocs folder. Its link becomes the QR link.
+  (QR code making is NOT part of this file — make it separately from the page link.)
+-->
+<style>
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:#f4f6fb;color:#1f2937;margin:0;padding:16px}
+  .wrap{max-width:520px;margin:0 auto;background:#fff;border-radius:16px;padding:22px 18px;box-shadow:0 4px 20px rgba(0,0,0,.08)}
+  h1{font-size:1.35rem;margin:0 0 4px;text-align:center}
+  .shop{text-align:center;font-weight:800;font-size:1.05rem;color:#0b3d91;margin:0 0 4px}
+  .sub{text-align:center;color:#5b6675;font-size:.92rem;margin:0 0 20px}
+  .step{margin-bottom:20px}
+  .step h2{font-size:1rem;margin:0 0 10px}
+  .stars{text-align:center;font-size:2.4rem;letter-spacing:6px;cursor:pointer;user-select:none}
+  .stars span{color:#d1d5db}
+  .stars span.on{color:#f5b301}
+  .opts{display:flex;flex-direction:column;gap:8px}
+  .opt{border:2px solid #e5e7eb;border-radius:10px;padding:11px 13px;cursor:pointer;font-size:.98rem;background:#fff}
+  .opt.on{border-color:#f5b301;background:#fff8e1;font-weight:700}
+  .draft{background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;padding:13px;min-height:110px;white-space:pre-line;font-size:.96rem;line-height:1.55;color:#334155}
+  .draft:empty::before{content:"Pick your rating and both questions above — your review will appear here.";color:#94a3b8}
+  .hint{text-align:center;color:#5b6675;font-size:.85rem;margin:12px 0 0}
+  .btn{display:block;width:100%;border:0;border-radius:12px;padding:14px;font-size:1.05rem;font-weight:800;cursor:pointer;background:#f5b301;color:#1f2937;margin-top:16px}
+  .btn.done{background:#1eb856;color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>✍️ Write Your Review</h1>
+  <p class="shop" id="shopName"></p>
+  <p class="sub">Just pick 3 things — your review will be ready automatically.</p>
+
+  <div class="step">
+    <h2>1. Your rating</h2>
+    <div class="stars" id="stars"><span data-v="1">★</span><span data-v="2">★</span><span data-v="3">★</span><span data-v="4">★</span><span data-v="5">★</span></div>
+  </div>
+
+  <div class="step">
+    <h2 id="q1Title">2. What did you like the most?</h2>
+    <div class="opts" id="q1"></div>
+  </div>
+
+  <div class="step">
+    <h2 id="q2Title">3. What could be better?</h2>
+    <div class="opts" id="q2"></div>
+  </div>
+
+  <div class="step">
+    <h2>Your review</h2>
+    <div class="draft" id="draft"></div>
+  </div>
+
+  <p class="hint">Tapping the button will copy your review and open Google’s form — there, long-press in the review box, tap Paste, and press Post.</p>
+  <button class="btn" id="postBtn" type="button">Post on Google →</button>
+</div>
+
+<script>
+(function () {
+  // ============================================================
+  //  EDIT HERE ONLY — for every new shop, change this block only.
+  //  Nothing below this block needs to change.
+  // ============================================================
+
+  // 1. The shop's name — shows on the page and inside the draft.
+  var SHOP_NAME = 'Sunrise Coaching Center';
+
+  // 2. The shop's Google "ask for review" link.
+  //    Get it from the shop's Google Maps listing -> Reviews -> Write a review.
+  //    Until you paste the real link here, the button will warn instead of opening.
+  var REVIEW_LINK = 'https://g.page/r/CeFkVbbbCHqDEBM/review';
+
+  // 3. Question 1 — what the customer liked.
+  //    label = button text. good = draft line for 3-5 stars. soft = draft line for 1-2 stars.
+  var Q1_TITLE = 'What did you like the most?';
+  var Q1_OPTIONS = [
+    { key: 'service',   label: '😊 Good service',      good: 'The service here is very good — the staff is polite and helpful.',   soft: 'One good thing is that the service is good.' },
+    { key: 'quality',   label: '⭐ Good quality',      good: 'The quality here is very good — I was happy with what I got.',       soft: 'One good thing is that the quality is good.' },
+    { key: 'price',     label: '💰 Fair prices',       good: 'The prices here are fair and reasonable.',                          soft: 'One good thing is that the prices are fair.' },
+    { key: 'behaviour', label: '🤝 Friendly behaviour', good: 'The behaviour of the staff is very friendly and helpful.',          soft: 'One good thing is that the staff is friendly.' }
+  ];
+
+  // 4. Question 2 — what could be better.
+  //    label = button text. good = draft line for 3-5 stars. bad = draft line for 1-2 stars.
+  var Q2_TITLE = 'What could be better?';
+  var Q2_OPTIONS = [
+    { key: 'allgood', label: '👍 Everything is great',     good: 'Everything else is also very good, and I had a comfortable experience.', bad: 'There are a few things that need attention.' },
+    { key: 'price',   label: '💰 Prices could be better',  good: 'Slightly better prices would make it even more convenient.',           bad: 'The prices felt high compared to the quality.' },
+    { key: 'speed',   label: '⏱️ Faster service needed',   good: 'Slightly faster service would make it even more convenient.',          bad: 'The service was slow, and I had to wait too long.' },
+    { key: 'variety', label: '🛍️ More variety needed',     good: 'A little more variety would make it even better.',                      bad: 'I felt a lack of variety — I could not find everything I wanted.' }
+  ];
+
+  // ============================================================
+  //  NOTHING BELOW NEEDS TO CHANGE — it only reads the block above.
+  // ============================================================
+
+  var rating = 0, q1 = '', q2 = '';
+  document.getElementById('shopName').textContent = SHOP_NAME;
+
+  function findOpt(list, key) {
+    for (var i = 0; i < list.length; i++) { if (list[i].key === key) return list[i]; }
+    return null;
+  }
+
+  function renderOptions(boxId, titleId, title, options) {
+    document.getElementById(titleId).textContent = title;
+    var box = document.getElementById(boxId);
+    box.innerHTML = '';
+    options.forEach(function (o) {
+      var d = document.createElement('div');
+      d.className = 'opt';
+      d.setAttribute('data-v', o.key);
+      d.textContent = o.label;
+      box.appendChild(d);
+    });
+  }
+  renderOptions('q1', 'q1Title', '2. ' + Q1_TITLE, Q1_OPTIONS);
+  renderOptions('q2', 'q2Title', '3. ' + Q2_TITLE, Q2_OPTIONS);
+
+  function buildDraft() {
+    if (!rating || !q1 || !q2) return '';
+    var o1 = findOpt(Q1_OPTIONS, q1);
+    var o2 = findOpt(Q2_OPTIONS, q2);
+    if (!o1 || !o2) return '';
+    var lines = [];
+    if (rating >= 4) {
+      lines.push('I had a very good experience at ' + SHOP_NAME + '.');
+      lines.push(o1.good);
+      lines.push(o2.good);
+      lines.push('I would definitely recommend this place to others.');
+    } else if (rating === 3) {
+      lines.push('My experience at ' + SHOP_NAME + ' was okay overall.');
+      lines.push(o1.good);
+      lines.push(o2.good);
+      lines.push('A few things could improve, but overall the experience is fine.');
+    } else {
+      lines.push('My experience at ' + SHOP_NAME + ' was not up to expectation.');
+      lines.push(o1.soft);
+      lines.push(o2.bad);
+      lines.push('If these things improve, this place can become much better.');
+      lines.push('I hope future customers do not face the same issues.');
+    }
+    return lines.join('\n');
+  }
+
+  function refresh() {
+    document.getElementById('draft').textContent = buildDraft();
+  }
+
+  function pick(containerId, value, setter) {
+    var box = document.getElementById(containerId);
+    var items = box.querySelectorAll('.opt');
+    items.forEach(function (el) {
+      el.classList.toggle('on', el.getAttribute('data-v') === value);
+    });
+    setter(value);
+    refresh();
+  }
+
+  document.getElementById('stars').addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t.getAttribute('data-v')) return;
+    rating = parseInt(t.getAttribute('data-v'), 10);
+    var stars = document.querySelectorAll('#stars span');
+    stars.forEach(function (s, i) {
+      s.classList.toggle('on', i < rating);
+    });
+    refresh();
+  });
+
+  document.getElementById('q1').addEventListener('click', function (e) {
+    var t = e.target.closest('.opt');
+    if (!t) return;
+    pick('q1', t.getAttribute('data-v'), function (v) { q1 = v; });
+  });
+
+  document.getElementById('q2').addEventListener('click', function (e) {
+    var t = e.target.closest('.opt');
+    if (!t) return;
+    pick('q2', t.getAttribute('data-v'), function (v) { q2 = v; });
+  });
+
+  document.getElementById('postBtn').addEventListener('click', function () {
+    var btn = document.getElementById('postBtn');
+    if (REVIEW_LINK.indexOf('PASTE_') === 0) {
+      btn.textContent = 'The shop’s real review link is not set yet — please add it in the file.';
+      setTimeout(function () { btn.textContent = 'Post on Google →'; }, 3000);
+      return;
+    }
+    var draft = buildDraft();
+    if (!draft) {
+      btn.textContent = 'Please pick your rating and both questions first ★';
+      setTimeout(function () { btn.textContent = 'Post on Google →'; }, 2500);
+      return;
+    }
+    function openForm() {
+      btn.textContent = '✅ Copied — paste it in the Google form';
+      btn.classList.add('done');
+      window.open(REVIEW_LINK, '_blank');
+      setTimeout(function () {
+        btn.textContent = 'Post on Google →';
+        btn.classList.remove('done');
+      }, 6000);
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(draft).then(openForm, openForm);
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = draft;
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (err) { /* clipboard unavailable */ }
+      document.body.removeChild(ta);
+      openForm();
+    }
+  });
+})();
+</script>
+</body>
+</html>
